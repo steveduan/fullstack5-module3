@@ -38,8 +38,8 @@ function NarrowItDownController(MenuSearchService) {
   list.search =function(){
     MenuSearchService.getMatchedMenuItems(list.searchItem);
     list.found=MenuSearchService.getItems();
-    console.log(this.found);
     var len=list.found.length;
+    console.log(len);
     if(len===0){
       list.errorMsg=true;
     }else{
@@ -47,28 +47,32 @@ function NarrowItDownController(MenuSearchService) {
     }
   };
   list.removeItem = function (itemIndex) {
-    console.log("'this' is: ", this);
-    console.log("delete index: "+itemIndex);    
+    // console.log("'this' is: ", this);
+    // console.log("delete index: "+itemIndex);    
     MenuSearchService.removeItem(itemIndex);
     
   };
 
 };
 
-MenuSearchService.$inject=['$http'];
-function MenuSearchService($http) {
+MenuSearchService.$inject=['$http',"$timeout"];
+function MenuSearchService($http,$timeout) {
   var service = this;
   // List of shopping items
+  var alreadyGet=0;
   var foundItems=[];
+  var dataItems=[];
   service.getItems=function(){
+    
     return foundItems;
   };
   service.removeItem = function (itemIndex) {
     foundItems.splice(itemIndex, 1);
   };
   service.getMatchedMenuItems=function(searchTerm){
-    
-    return $http(
+    if(alreadyGet===0){
+      alreadyGet=1;
+         $http(
       {
         method: "GET",
         url: ("https://davids-restaurant.herokuapp.com/menu_items.json")
@@ -76,28 +80,39 @@ function MenuSearchService($http) {
     ).then(function (result) {
       // process result and only keep items that match
       var items=result.data;
-      items=items.menu_items;
+      dataItems=items.menu_items;
+     
+      
+  },function (reject){
+    console.log(reject,"something wrong!");
+  });
+
+    //$timeout(function(){console.log("wait some second to wait for json load")},2000);
+
+   };
+
       var des="";
       foundItems=[];
-      for(var i = 0;i<items.length;i++){
-        des=items[i].description;
+      console.log("search for :",searchTerm);
+      if(searchTerm==='')return;
+      // console.log("don't get json again!!",dataItems)
+      for(var i = 0;i<dataItems.length;i++){
+        des=dataItems[i].description;
         if(des.indexOf(searchTerm)!=-1){
           var ele={
-            name:items[i].name,
-            short_name : items[i].short_name,
-            description: items[i].description
+            name:dataItems[i].name,
+            short_name : dataItems[i].short_name,
+            description: dataItems[i].description
           };
           foundItems.push(ele);
         }
-      }
-      // console.log("what the foundItems ack like:",foundItems);
-      // // return processed items
-      // return foundItems;
-      //we don't want to return foundItems here, this some error
-  },function (reject){
-    console.log(reject,"some thing wrong!");
-  });
-  }
+      };
+
+
+
+};
+
+
 };
 
 

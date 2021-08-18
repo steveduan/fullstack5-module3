@@ -62,5 +62,6 @@ input[type="text"] {
 .showList li{
   margin-bottom: 2px;
   border: 1px black solid;
+  background-color: lightblue;
 
 }
